@@ -283,7 +283,6 @@ class EVLTransformer(nn.Module):
         ]
 
         x = self.decoder(features)
-        # breakpoint()
         # x = self.proj(x[:, 0, :])
 
         return x

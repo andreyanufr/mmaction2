@@ -5,35 +5,35 @@ model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        backbone_path='/home/jeom/workspace/mmaction2/ViT-B-16.pt'
+        num_frames=32,
+        decoder_qkv_dim=1024,
+        decoder_num_heads=16,
+        backbone_name="ViT-L/14-lnpre",
+        backbone_path='/home/jeom/workspace/mmaction/ViT-L-14.pt'
         ),
-    cls_head=dict(type='EVLHead', num_classes=400, in_channels=768),
+    cls_head=dict(type='EVLHead', num_classes=51, in_channels=1024),
     # model training and testing settings
     train_cfg=None,
     test_cfg=dict(average_clips='prob'))
 
+
 # dataset settings
+split = 3
 dataset_type = 'RawframeDataset'
-# data_root = 'data/kinetics400/rawframes_train'
-# data_root_val = 'data/kinetics400/rawframes_val'
-# ann_file_train = 'data/kinetics400/kinetics400_train_list_rawframes.txt'
-# ann_file_val = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
-# ann_file_test = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
-
-data_root = 'data/experiment/rawframes_train'
-data_root_val = 'data/experiment/rawframes_val'
-ann_file_train = 'data/experiment/train_list_rawframes.txt'
-ann_file_val = 'data/experiment/val_list_rawframes.txt'
-ann_file_test = 'data/experiment/test_list_rawframes.txt'
-
+data_root = 'data/hmdb51/rawframes'
+data_root_val = 'data/hmdb51/rawframes'
+ann_file_train = f'data/hmdb51/hmdb51_train_split_{split}_rawframes.txt'
+ann_file_val = f'data/hmdb51/hmdb51_val_split_{split}_rawframes.txt'
+ann_file_test = f'data/hmdb51/hmdb51_val_split_{split}_rawframes.txt'
 img_norm_cfg = dict(
-    mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
 
 train_pipeline = [
-    dict(type='SampleFrames', clip_len=8, frame_interval=32, num_clips=1),
+    dict(type='SampleFrames', clip_len=32, frame_interval=4, num_clips=1),
     dict(type='RawFrameDecode'),
-    dict(type='RandomRescale', scale_range=(256, 320)),
-    dict(type='RandomCrop', size=224),
+    dict(type='Resize', scale=(-1, 256)),
+    dict(type='RandomResizedCrop'),
+    dict(type='Resize', scale=(224, 224), keep_ratio=False),
     dict(type='Flip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
@@ -43,8 +43,8 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=8,
-        frame_interval=32,
+        clip_len=32,
+        frame_interval=4,
         num_clips=1,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -53,26 +53,27 @@ val_pipeline = [
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['imgs', 'label'])
+    dict(type='ToTensor', keys=['imgs'])
 ]
 test_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=8,
-        frame_interval=32,
-        num_clips=1,
+        clip_len=32,
+        frame_interval=4,
+        num_clips=10,
         test_mode=True),
     dict(type='RawFrameDecode'),
-    dict(type='Resize', scale=(-1, 224)),
-    dict(type='ThreeCrop', crop_size=224),
+    dict(type='Resize', scale=(-1, 256)),
+    dict(type='ThreeCrop', crop_size=256),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['imgs', 'label'])
+    dict(type='ToTensor', keys=['imgs'])
 ]
+
 data = dict(
     videos_per_gpu=8,
-    workers_per_gpu=2,
+    workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
         type=dataset_type,
@@ -91,7 +92,8 @@ data = dict(
         pipeline=test_pipeline))
 
 evaluation = dict(
-    interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'])
+    interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'], save_best='top1_acc')
+checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 
 # optimizer
 optimizer = dict(
@@ -111,7 +113,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy='step', step=[5, 10])
 total_epochs = 15
-
+fp16=dict(loss_scale='dynamic')
 # runtime settings
-checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/timesformer_divST_8x32x1_15e_kinetics400_rgb'
+work_dir = './work_dirs/EVL_HMDB51_ViT-L-14'
+load_from = '../EVL_ViT-L-14.pth'
