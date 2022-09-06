@@ -17,8 +17,8 @@ from .tanet import TANet
 from .timesformer import TimeSformer
 from .x3d import X3D
 from .evl_transformer import EVLTransformer
-from .gcvivit import GCViViTRecurrent
-from .gcvivit3d import GCViViT3D
+# from .gcvivit import GCViViTRecurrent
+# from .gcvivit3d import GCViViT3D
 from .movinet import MoViNetBase
 #from .mobilenetv3_lgd import MobileNetV3_LGD
 

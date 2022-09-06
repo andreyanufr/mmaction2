@@ -13,7 +13,7 @@ model = dict(
         decoder_qkv_dim=1024,
         decoder_num_heads=16,
         backbone_name="ViT-L/14-lnpre",
-        backbone_path='/home/jeom/workspace/mmaction/ViT-L-14.pt'
+        backbone_path='./ViT-L-14.pt'
         ),
     cls_head=dict(type='EVLHead', num_classes=101, in_channels=1024),
     # model training and testing settings
@@ -99,7 +99,7 @@ checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 
 # optimizer
 optimizer = dict(
-    lr=0.001/2,  # this lr is used for 8/2 gpus
+    lr=0.001,  # this lr is used for 8 gpus
 )
 optimizer_config = dict(grad_clip=dict(max_norm=20, norm_type=2))
 # learning policy
