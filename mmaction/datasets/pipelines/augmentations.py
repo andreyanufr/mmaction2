@@ -63,7 +63,7 @@ class TorchvisionTrans:
         type (str): The name of the torchvision transformation.
     """
 
-    def __init__(self, type, **kwargs):
+    def __init__(self, tr_type, **kwargs):
         try:
             import torchvision
             import torchvision.transforms as tv_trans
@@ -73,8 +73,8 @@ class TorchvisionTrans:
             raise RuntimeError('The version of torchvision should be at least '
                                '0.8.0')
 
-        trans = getattr(tv_trans, type, None)
-        assert trans, f'Transform {type} not in torchvision'
+        trans = getattr(tv_trans, tr_type, None)
+        assert trans, f'Transform {tr_type} not in torchvision'
         self.trans = trans(**kwargs)
 
     def __call__(self, results):
@@ -97,10 +97,10 @@ class PytorchVideoTrans:
     """PytorchVideoTrans Augmentations, under pytorchvideo.transforms.
 
     Args:
-        type (str): The name of the pytorchvideo transformation.
+        tr_type (str): The name of the pytorchvideo transformation.
     """
 
-    def __init__(self, type, **kwargs):
+    def __init__(self, tr_type, **kwargs):
         try:
             import pytorchvideo.transforms as ptv_trans
             import torch
@@ -110,17 +110,17 @@ class PytorchVideoTrans:
             raise RuntimeError(
                 'The version of PyTorch should be at least 1.8.0')
 
-        trans = getattr(ptv_trans, type, None)
-        assert trans, f'Transform {type} not in pytorchvideo'
+        trans = getattr(ptv_trans, tr_type, None)
+        assert trans, f'Transform {tr_type} not in pytorchvideo'
 
         supported_pytorchvideo_trans = ('AugMix', 'RandAugment',
                                         'RandomResizedCrop', 'ShortSideScale',
-                                        'RandomShortSideScale')
-        assert type in supported_pytorchvideo_trans,\
-            f'PytorchVideo Transform {type} is not supported in MMAction2'
+                                        'RandomShortSideScale', 'CutMix')
+        assert tr_type in supported_pytorchvideo_trans,\
+            f'PytorchVideo Transform {tr_type} is not supported in MMAction2'
 
         self.trans = trans(**kwargs)
-        self.type = type
+        self.type = tr_type
 
     def __call__(self, results):
         assert 'imgs' in results
