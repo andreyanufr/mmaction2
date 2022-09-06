@@ -256,7 +256,7 @@ if not from_mmcv:
                 if self.best_ckpt_path and osp.isfile(self.best_ckpt_path):
                     os.remove(self.best_ckpt_path)
 
-                best_ckpt_name = f'best_{self.key_indicator}_{current}.pth'
+                best_ckpt_name = f'best_{self.key_indicator}_{best_score*100:.2f}_{current}.pth'
                 runner.save_checkpoint(
                     runner.work_dir, best_ckpt_name, create_symlink=False)
                 self.best_ckpt_path = osp.join(runner.work_dir, best_ckpt_name)
@@ -389,3 +389,32 @@ if not from_mmcv:
 
                 if self.save_best:
                     self._save_ckpt(runner, key_score)
+
+        def _save_ckpt(self, runner, key_score):
+            if self.by_epoch:
+                current = f'epoch_{runner.epoch + 1}'
+                cur_type, cur_time = 'epoch', runner.epoch + 1
+            else:
+                current = f'iter_{runner.iter + 1}'
+                cur_type, cur_time = 'iter', runner.iter + 1
+
+            best_score = runner.meta['hook_msgs'].get(
+                'best_score', self.init_value_map[self.rule])
+            if self.compare_func(key_score, best_score):
+                best_score = key_score
+                runner.meta['hook_msgs']['best_score'] = best_score
+
+                if self.best_ckpt_path and osp.isfile(self.best_ckpt_path):
+                    os.remove(self.best_ckpt_path)
+
+                best_ckpt_name = f'best_{self.key_indicator}_{best_score*100:.2f}_{current}.pth'
+                runner.save_checkpoint(
+                    runner.work_dir, best_ckpt_name, create_symlink=False)
+                self.best_ckpt_path = osp.join(runner.work_dir, best_ckpt_name)
+
+                runner.meta['hook_msgs']['best_ckpt'] = self.best_ckpt_path
+                runner.logger.info(
+                    f'Now best checkpoint is saved as {best_ckpt_name}.')
+                runner.logger.info(
+                    f'Best {self.key_indicator} is {best_score:0.4f} '
+                    f'at {cur_time} {cur_type}.')

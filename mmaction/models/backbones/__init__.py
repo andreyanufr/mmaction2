@@ -16,6 +16,7 @@ from .stgcn import STGCN
 from .tanet import TANet
 from .timesformer import TimeSformer
 from .x3d import X3D
+from .evl_transformer import EVLTransformer
 from .gcvivit import GCViViTRecurrent
 from .gcvivit3d import GCViViT3D
 from .movinet import MoViNetBase
@@ -26,5 +27,5 @@ __all__ = [
     'ResNet3dSlowFast', 'ResNet3dSlowOnly', 'ResNet3dCSN', 'ResNetTIN', 'X3D',
     'ResNetAudio', 'ResNet3dLayer', 'MobileNetV2TSM', 'MobileNetV2', 'TANet',
     'TimeSformer', 'STGCN', 'AGCN', 'GCViViT3D', 'MobileNetV3_LGD',
-    'MoViNetBase', 'GCViViTRecurrent'
+    'MoViNetBase', 'GCViViTRecurrent', 'EVLTransformer'
 ]

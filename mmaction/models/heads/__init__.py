@@ -16,6 +16,7 @@ from .trn_head import TRNHead
 from .tsm_head import TSMHead
 from .tsn_head import TSNHead
 from .x3d_head import X3DHead
+from .evl_head import EVLHead
 from .gcvivit_head import GCViViTHead
 from .movinet_head import MoViNetHead
 #from .cls_head import ClsHead
@@ -25,5 +26,5 @@ __all__ = [
     'TPNHead', 'AudioTSNHead', 'X3DHead', 'BBoxHeadAVA', 'AVARoIHead',
     'FBOHead', 'LFBInferHead', 'TRNHead', 'TimeSformerHead', 'ACRNHead',
     'STGCNHead', 'GCViViTHead', 'ClsHead',
-    'MoViNetHead',
+    'MoViNetHead', 'EVLHead'
 ]
