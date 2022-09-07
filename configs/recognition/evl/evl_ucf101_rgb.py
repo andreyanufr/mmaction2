@@ -1,11 +1,13 @@
 _base_ = ['../../_base_/default_runtime.py']
 # from mmaction/configs/recognition/slowonly/slowonly_imagenet_pretrained_r50_8x4x1_64e_ucf101_rgb.py
 # model settings
+clip_len=16
+frame_interval=2
 model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        num_frames=32,
+        num_frames=clip_len,
         decoder_qkv_dim=1024,
         decoder_num_heads=16,
         backbone_name="ViT-L/14-lnpre",
@@ -28,7 +30,7 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
 
 train_pipeline = [
-    dict(type='SampleFrames', clip_len=32, frame_interval=4, num_clips=1),
+    dict(type='SampleFrames', clip_len=clip_len, frame_interval=frame_interval, num_clips=1),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(-1, 256)),
     dict(type='RandomResizedCrop'),
@@ -42,8 +44,8 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=32,
-        frame_interval=4,
+        clip_len=clip_len,
+        frame_interval=frame_interval,
         num_clips=1,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -57,8 +59,8 @@ val_pipeline = [
 test_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=32,
-        frame_interval=4,
+        clip_len=clip_len,
+        frame_interval=frame_interval,
         num_clips=10,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -70,7 +72,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=12,
     workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
