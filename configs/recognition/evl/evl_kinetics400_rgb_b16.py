@@ -5,7 +5,11 @@ model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        backbone_path='/home/jeom/workspace/mmaction/ViT-B-16.pt'
+        num_frames=8,
+        decoder_qkv_dim=768,
+        decoder_num_heads=12,
+        backbone_name="ViT-B/16-lnpre",
+        backbone_path='/local_ssd1/jeom/checkpoints/ViT-L-14.pt'
         ),
     cls_head=dict(type='EVLHead', num_classes=400, in_channels=768),
     # model training and testing settings
@@ -13,27 +17,22 @@ model = dict(
     test_cfg=dict(average_clips='prob'))
 
 # dataset settings
-dataset_type = 'RawframeDataset'
-# data_root = 'data/kinetics400/rawframes_train'
-# data_root_val = 'data/kinetics400/rawframes_val'
-# ann_file_train = 'data/kinetics400/kinetics400_train_list_rawframes.txt'
-# ann_file_val = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
-# ann_file_test = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
-
-data_root = 'data/experiment/rawframes_train'
-data_root_val = 'data/experiment/rawframes_val'
-ann_file_train = 'data/experiment/train_list_rawframes.txt'
-ann_file_val = 'data/experiment/val_list_rawframes.txt'
-ann_file_test = 'data/experiment/test_list_rawframes.txt'
+dataset_type = 'VideoDataset'
+data_root = 'data/kinetics400/videos_train'
+data_root_val = 'data/kinetics400/videos_val'
+ann_file_train = 'data/kinetics400/kinetics400_train_list_videos.txt'
+ann_file_val = 'data/kinetics400/kinetics400_val_list_videos.txt'
+ann_file_test = 'data/kinetics400/kinetics400_val_list_videos.txt'
 
 img_norm_cfg = dict(
-    mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
-
+    mean=[122.77, 116.74, 104.09], std=[68.50, 66.63, 70.32], to_bgr=False)
 train_pipeline = [
-    dict(type='SampleFrames', clip_len=8, frame_interval=32, num_clips=1),
-    dict(type='RawFrameDecode'),
-    dict(type='RandomRescale', scale_range=(256, 320)),
-    dict(type='RandomCrop', size=224),
+    dict(type='DecordInit'),
+    dict(type='SampleFrames', clip_len=8, frame_interval=16, num_clips=1),
+    dict(type='DecordDecode'),
+    dict(type='Resize', scale=(-1, 256)),
+    dict(type='RandomResizedCrop'),
+    dict(type='Resize', scale=(224, 224), keep_ratio=False),
     dict(type='Flip', flip_ratio=0.5),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
@@ -41,38 +40,41 @@ train_pipeline = [
     dict(type='ToTensor', keys=['imgs', 'label'])
 ]
 val_pipeline = [
+    dict(type='DecordInit'),
     dict(
         type='SampleFrames',
         clip_len=8,
-        frame_interval=32,
+        frame_interval=16,
         num_clips=1,
         test_mode=True),
-    dict(type='RawFrameDecode'),
+    dict(type='DecordDecode'),
     dict(type='Resize', scale=(-1, 256)),
     dict(type='CenterCrop', crop_size=224),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['imgs', 'label'])
+    dict(type='ToTensor', keys=['imgs'])
 ]
 test_pipeline = [
+    dict(type='DecordInit'),
     dict(
         type='SampleFrames',
         clip_len=8,
-        frame_interval=32,
-        num_clips=1,
+        frame_interval=16,
+        num_clips=10,
         test_mode=True),
-    dict(type='RawFrameDecode'),
-    dict(type='Resize', scale=(-1, 224)),
-    dict(type='ThreeCrop', crop_size=224),
+    dict(type='DecordDecode'),
+    dict(type='Resize', scale=(-1, 256)),
+    dict(type='ThreeCrop', crop_size=256),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
-    dict(type='ToTensor', keys=['imgs', 'label'])
+    dict(type='ToTensor', keys=['imgs'])
 ]
+
 data = dict(
-    videos_per_gpu=8,
-    workers_per_gpu=2,
+    videos_per_gpu=32,
+    workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
         type=dataset_type,
@@ -114,4 +116,5 @@ total_epochs = 15
 
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/timesformer_divST_8x32x1_15e_kinetics400_rgb'
+work_dir = './work_dirs/EVL_kinetics400_rgb'
+fp16=dict(loss_scale='dynamic')

@@ -37,7 +37,27 @@ class VideoDataset(BaseDataset):
     """
 
     def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
+        # ann_file = 'data/kinetics400/kinetics400_val_list_videos.txt'
+        # kwargs['data_prefix'] = 'data/kinetics400/videos_val'
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
+
+        # import copy
+        # from tqdm import tqdm
+        # decord = self.pipeline.transforms[0]
+        # # breakpoint()
+        # for idx in tqdm(range(len(self.video_infos))):
+        #     # results = copy.deepcopy(self.video_infos[idx])
+        #     results = copy.deepcopy(self.video_infos[-(idx+1)])
+
+        #     results['modality'] = self.modality
+        #     results['start_index'] = self.start_index
+        #     try:
+        #         decord(results)
+        #         # self.pipeline(results)
+        #     except:
+        #         # print(self.video_infos[idx]['filename'])
+        #         print(self.video_infos[-(idx+1)]['filename'])
+        # breakpoint()
 
     def load_annotations(self):
         """Load annotation file to get video information."""
