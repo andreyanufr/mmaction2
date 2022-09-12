@@ -9,7 +9,7 @@ model = dict(
         decoder_qkv_dim=768,
         decoder_num_heads=12,
         backbone_name="ViT-B/16-lnpre",
-        backbone_path='/local_ssd1/jeom/checkpoints/ViT-L-14.pt'
+        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-L-14.pt'
         ),
     cls_head=dict(type='EVLHead', num_classes=400, in_channels=768),
     # model training and testing settings

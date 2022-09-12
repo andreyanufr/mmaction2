@@ -5,13 +5,13 @@ model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        num_frames=32,
-        decoder_qkv_dim=1024,
-        decoder_num_heads=16,
-        backbone_name="ViT-L/14-lnpre",
-        backbone_path='./ViT-L-14.pt'
+        num_frames=8,
+        decoder_qkv_dim=768,
+        decoder_num_heads=12,
+        backbone_name="ViT-B/16-lnpre",
+        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-B-16.pt'
         ),
-    cls_head=dict(type='EVLHead', num_classes=101, in_channels=1024),
+    cls_head=dict(type='EVLHead', num_classes=101, in_channels=768),
     # model training and testing settings
     train_cfg=None,
     test_cfg=dict(average_clips='prob'))
@@ -28,7 +28,7 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
 
 train_pipeline = [
-    dict(type='SampleFrames', clip_len=32, frame_interval=4, num_clips=1),
+    dict(type='SampleFrames', clip_len=8, frame_interval=16, num_clips=1),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(-1, 256)),
     dict(type='RandomResizedCrop'),
@@ -42,8 +42,8 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=32,
-        frame_interval=4,
+        clip_len=8,
+        frame_interval=16,
         num_clips=1,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -57,8 +57,8 @@ val_pipeline = [
 test_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=32,
-        frame_interval=4,
+        clip_len=8,
+        frame_interval=16,
         num_clips=10,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -70,7 +70,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=32,
     workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(

@@ -1,19 +1,19 @@
 _base_ = ['../../_base_/default_runtime.py']
 # from mmaction/configs/recognition/slowonly/slowonly_imagenet_pretrained_r50_8x4x1_64e_ucf101_rgb.py
 # model settings
-clip_len=16
-frame_interval=2
+clip_len=8
+frame_interval=16
 model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        num_frames=clip_len,
-        decoder_qkv_dim=1024,
-        decoder_num_heads=16,
-        backbone_name="ViT-L/14-lnpre",
-        backbone_path='./ViT-L-14.pt'
+        num_frames=8,
+        decoder_qkv_dim=768,
+        decoder_num_heads=12,
+        backbone_name="ViT-B/16-lnpre",
+        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-B-16.pt'
         ),
-    cls_head=dict(type='EVLHead', num_classes=101, in_channels=1024),
+    cls_head=dict(type='EVLHead', num_classes=101, in_channels=768),
     # model training and testing settings
     train_cfg=None,
     test_cfg=dict(average_clips='prob'))
@@ -72,7 +72,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 data = dict(
-    videos_per_gpu=12,
+    videos_per_gpu=8,
     workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
@@ -115,5 +115,5 @@ lr_config = dict(policy='step', step=[5, 10])
 total_epochs = 15
 fp16=dict(loss_scale='dynamic')
 # runtime settings
-work_dir = './work_dirs/EVL_UCF101_ViT-L-14'
-load_from = '../EVL_ViT-L-14.pth'
+work_dir = './work_dirs/EVL_UCF101_ViT-B-16'
+# load_from = '../EVL_ViT-L-14.pth'
