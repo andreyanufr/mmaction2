@@ -34,6 +34,7 @@ train_pipeline = [
     dict(type='RandomResizedCrop'),
     dict(type='Resize', scale=(224, 224), keep_ratio=False),
     dict(type='Flip', flip_ratio=0.5),
+    dict(type='PytorchVideoTrans', tr_type='RandAugment', magnitude=7, num_layers=4),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
@@ -73,8 +74,8 @@ test_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=8,
-    workers_per_gpu=4,
+    videos_per_gpu=32,
+    workers_per_gpu=8,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
         type=dataset_type,
@@ -97,24 +98,18 @@ evaluation = dict(
 
 # optimizer
 optimizer = dict(
-    type='SGD',
-    lr=0.005,
-    momentum=0.9,
-    paramwise_cfg=dict(
-        custom_keys={
-            '.backbone.cls_token': dict(decay_mult=0.0),
-            '.backbone.pos_embed': dict(decay_mult=0.0),
-            '.backbone.time_embed': dict(decay_mult=0.0)
-        }),
-    weight_decay=1e-4,
-    nesterov=True)  # this lr is used for 8 gpus
+    type='AdamW',
+    lr=4e-4,
+    weight_decay=0.05,
+)
+
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
-lr_config = dict(policy='step', step=[5, 10])
-total_epochs = 15
+lr_config = dict(policy='CosineAnnealing', min_lr=0)
+total_epochs = 30
 
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/EVL_B16_kinetics700_rgb'
+work_dir = './work_dirs/EVL_ViT-B16-8f_kinetics700'
 fp16=dict(loss_scale='dynamic')

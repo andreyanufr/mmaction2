@@ -6,12 +6,12 @@ model = dict(
     backbone=dict(
         type='EVLTransformer',
         num_frames=8,
-        decoder_qkv_dim=768,
-        decoder_num_heads=12,
-        backbone_name="ViT-B/16-lnpre",
-        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-B-16.pt'
+        decoder_qkv_dim=1024,
+        decoder_num_heads=16,
+        backbone_name="ViT-L/14-lnpre",
+        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-L-14.pt'
         ),
-    cls_head=dict(type='EVLHead', num_classes=400, in_channels=768),
+    cls_head=dict(type='EVLHead', num_classes=400, in_channels=1024),
     # model training and testing settings
     train_cfg=None,
     test_cfg=dict(average_clips='prob'))
@@ -111,5 +111,5 @@ total_epochs = 30
 
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/EVL_ViT-B16-8f_kinetics400'
+work_dir = './work_dirs/EVL_ViT-L14-8f_kinetics400'
 fp16=dict(loss_scale='dynamic')
