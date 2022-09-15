@@ -62,11 +62,11 @@ test_pipeline = [
         type='SampleFrames',
         clip_len=8,
         frame_interval=16,
-        num_clips=10,
+        num_clips=1,
         test_mode=True),
     dict(type='DecordDecode'),
     dict(type='Resize', scale=(-1, 256)),
-    dict(type='ThreeCrop', crop_size=256),
+    dict(type='CenterCrop', crop_size=224),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
@@ -107,7 +107,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0)
-total_epochs = 30
+total_epochs = 60
 
 # runtime settings
 checkpoint_config = dict(interval=1)

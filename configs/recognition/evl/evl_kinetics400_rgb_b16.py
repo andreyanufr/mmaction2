@@ -18,11 +18,11 @@ model = dict(
 
 # dataset settings
 dataset_type = 'VideoDataset'
-data_root = 'data/kinetics400/videos_train'
-data_root_val = 'data/kinetics400/videos_val'
-ann_file_train = 'data/kinetics400/kinetics400_train_list_videos.txt'
-ann_file_val = 'data/kinetics400/kinetics400_val_list_videos.txt'
-ann_file_test = 'data/kinetics400/kinetics400_val_list_videos.txt'
+data_root = 'data/kinetics400/videos_train_sampled'
+data_root_val = 'data/kinetics400/videos_val_sampled'
+ann_file_train = 'data/kinetics400/kinetics400_train_list_videos_sampled.txt'
+ann_file_val = 'data/kinetics400/kinetics400_val_list_videos_sampled.txt'
+ann_file_test = 'data/kinetics400/kinetics400_val_list_videos_sampled.txt'
 
 img_norm_cfg = dict(
     mean=[122.77, 116.74, 104.09], std=[68.50, 66.63, 70.32], to_bgr=False)
@@ -107,7 +107,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0)
-total_epochs = 30
+total_epochs = 60
 
 # runtime settings
 checkpoint_config = dict(interval=1)

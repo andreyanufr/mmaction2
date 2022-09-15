@@ -18,8 +18,11 @@ model = dict(
 
 # dataset settings
 dataset_type = 'RawframeDataset'
-data_root = 'data/kinetics400/rawframes_train_sampled'
-data_root_val = 'data/kinetics400/rawframes_val_sampled'
+# data_root = 'data/kinetics400/rawframes_train_sampled'
+# data_root_val = 'data/kinetics400/rawframes_val_sampled'
+data_root = '/storageserver/pvd_data/kinetics400/rawframes_train_sampled'
+data_root_val = '/storageserver/pvd_data/kinetics400/rawframes_val_sampled'
+
 ann_file_train = 'data/kinetics400/kinetics400_train_list_rawframes.txt'
 ann_file_val = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
 ann_file_test = 'data/kinetics400/kinetics400_val_list_rawframes.txt'
@@ -104,7 +107,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0)
-total_epochs = 30
+total_epochs = 60
 
 # runtime settings
 checkpoint_config = dict(interval=1)
