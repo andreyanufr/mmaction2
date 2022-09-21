@@ -15,10 +15,10 @@ from mmcv.parallel import collate, scatter
 from mmaction.apis import init_recognizer
 from mmaction.datasets.pipelines import Compose
 
-FONTFACE = cv2.FONT_HERSHEY_COMPLEX_SMALL
-FONTSCALE = 1
+FONTFACE = cv2.FONT_HERSHEY_PLAIN
+FONTSCALE = 0.375
 THICKNESS = 1
-LINETYPE = 1
+LINETYPE = cv2.LINE_AA
 
 EXCLUED_STEPS = [
     'OpenCVInit', 'OpenCVDecode', 'DecordInit', 'DecordDecode', 'PyAVInit',
@@ -44,7 +44,7 @@ def parse_args():
     parser.add_argument(
         '--threshold',
         type=float,
-        default=0.01,
+        default=0.4,
         help='recognition score threshold')
     parser.add_argument(
         '--stride',
@@ -85,8 +85,11 @@ def show_results_video(result_queue,
                        msg,
                        frame,
                        video_writer,
+                       factor,
                        label_color=(255, 255, 255),
-                       msg_color=(128, 128, 128)):
+                       msg_color=(128, 128, 128),
+                       ):
+    
     if len(result_queue) != 0:
         text_info = {}
         results = result_queue.popleft()
@@ -94,18 +97,21 @@ def show_results_video(result_queue,
             selected_label, score = result
             if score < thr:
                 break
-            location = (0, 40 + i * 20)
+            location = (0, 10 + i * 20)
             text = selected_label + ': ' + str(round(score, 2))
             text_info[location] = text
-            cv2.putText(frame, text, location, FONTFACE, FONTSCALE,
+            cv2.putText(frame, text, location, cv2.FONT_HERSHEY_DUPLEX, FONTSCALE,
                         label_color, THICKNESS, LINETYPE)
     elif len(text_info):
         for location, text in text_info.items():
             cv2.putText(frame, text, location, FONTFACE, FONTSCALE,
                         label_color, THICKNESS, LINETYPE)
     else:
-        cv2.putText(frame, msg, (0, 40), FONTFACE, FONTSCALE, msg_color,
+        cv2.putText(frame, msg, (0, 10), FONTFACE, FONTSCALE, msg_color,
                     THICKNESS, LINETYPE)
+
+    # frame = cv2.resize(frame, (frame.shape[1]*factor, frame.shape[0]*factor))
+    frame = cv2.resize(frame, (960, 640))
     video_writer.write(frame)
     return text_info
 
@@ -137,15 +143,18 @@ def show_results(model, data, label, args):
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
 
-    msg = 'Preparing action recognition ...'
+    msg = 'initializing...'
     text_info = {}
     out_json = {}
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    frame_size = (frame_width, frame_height)
+    factor=5
+    # frame_size = (frame_width*factor, frame_height*factor)
+    frame_size = (960, 640)
+
 
     ind = 0
     video_writer = None if args.out_file.endswith('.json') \
-        else cv2.VideoWriter(args.out_file, fourcc, fps, frame_size)
+        else cv2.VideoWriter(args.out_file, fourcc, 18, frame_size)
     prog_bar = mmcv.ProgressBar(num_frames)
     backup_frames = []
 
@@ -186,7 +195,7 @@ def show_results(model, data, label, args):
         else:
             text_info = show_results_video(result_queue, text_info,
                                            args.threshold, msg, frame,
-                                           video_writer, args.label_color,
+                                           video_writer, factor, args.label_color,
                                            args.msg_color)
 
     cap.release()
