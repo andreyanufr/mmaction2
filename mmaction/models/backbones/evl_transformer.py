@@ -210,6 +210,7 @@ class EVLTransformer(nn.Module):
         enable_temporal_pos_embed: bool = True,
         enable_temporal_cross_attention: bool = True,
         decoder_mlp_dropout: float = 0.5,
+        **kwargs
     ):
         super().__init__()
 

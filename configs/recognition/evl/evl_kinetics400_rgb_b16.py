@@ -11,18 +11,18 @@ model = dict(
         backbone_name="ViT-B/16-lnpre",
         backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-B-16.pt'
         ),
-    cls_head=dict(type='EVLHead', num_classes=400, in_channels=768),
+    cls_head=dict(type='EVLHead', num_classes=48, in_channels=768),
     # model training and testing settings
     train_cfg=None,
     test_cfg=dict(average_clips='prob'))
 
 # dataset settings
 dataset_type = 'VideoDataset'
-data_root = 'data/kinetics400/videos_train_sampled'
-data_root_val = 'data/kinetics400/videos_val_sampled'
-ann_file_train = 'data/kinetics400/kinetics400_train_list_videos_sampled.txt'
-ann_file_val = 'data/kinetics400/kinetics400_val_list_videos_sampled.txt'
-ann_file_test = 'data/kinetics400/kinetics400_val_list_videos_sampled.txt'
+data_root = 'data/kinetics400/videos_train'
+data_root_val = 'data/kinetics400/videos_val'
+ann_file_train = 'data/kinetics400/kinetics400_train_list_videos.txt'
+ann_file_val = 'data/kinetics400/kinetics400_val_list_videos.txt'
+ann_file_test = 'data/kinetics400/kinetics400_val_list_videos.txt'
 
 img_norm_cfg = dict(
     mean=[122.77, 116.74, 104.09], std=[68.50, 66.63, 70.32], to_bgr=False)

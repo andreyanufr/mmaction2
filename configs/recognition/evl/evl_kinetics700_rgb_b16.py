@@ -107,9 +107,9 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0)
-total_epochs = 60
+total_epochs = 25
 
 # runtime settings
 checkpoint_config = dict(interval=1)
-work_dir = './work_dirs/EVL_ViT-B16-8f_kinetics700'
+work_dir = './work_dirs/EVL_ViT-B16-8f_kinetics700_25ep'
 fp16=dict(loss_scale='dynamic')

@@ -5,7 +5,7 @@ model = dict(
     type='Recognizer2D',
     backbone=dict(
         type='EVLTransformer',
-        num_frames=8,
+        num_frames=32,
         decoder_qkv_dim=768,
         decoder_num_heads=12,
         backbone_name="ViT-B/16-lnpre",
@@ -29,12 +29,13 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
 
 train_pipeline = [
-    dict(type='SampleFrames', clip_len=8, frame_interval=16, num_clips=1),
+    dict(type='SampleFrames', clip_len=32, frame_interval=4, num_clips=1),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(-1, 256)),
     dict(type='RandomResizedCrop'),
     dict(type='Resize', scale=(224, 224), keep_ratio=False),
     dict(type='Flip', flip_ratio=0.5),
+    dict(type='PytorchVideoTrans', tr_type='RandAugment', magnitude=7, num_layers=4),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
@@ -43,8 +44,8 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=8,
-        frame_interval=16,
+        clip_len=32,
+        frame_interval=4,
         num_clips=1,
         test_mode=True),
     dict(type='RawFrameDecode'),
@@ -58,13 +59,13 @@ val_pipeline = [
 test_pipeline = [
     dict(
         type='SampleFrames',
-        clip_len=8,
-        frame_interval=16,
-        num_clips=10,
+        clip_len=32,
+        frame_interval=4,
+        num_clips=1,
         test_mode=True),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(-1, 256)),
-    dict(type='ThreeCrop', crop_size=256),
+    dict(type='CenterCrop', crop_size=224),
     dict(type='Normalize', **img_norm_cfg),
     dict(type='FormatShape', input_format='NCTHW'),
     dict(type='Collect', keys=['imgs', 'label'], meta_keys=[]),
@@ -73,7 +74,7 @@ test_pipeline = [
 
 data = dict(
     videos_per_gpu=32,
-    workers_per_gpu=4,
+    workers_per_gpu=8,
     test_dataloader=dict(videos_per_gpu=1),
     train=dict(
         type=dataset_type,
@@ -93,27 +94,23 @@ data = dict(
 
 evaluation = dict(
     interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'], save_best='top1_acc')
-checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 
 # optimizer
 optimizer = dict(
-    type='SGD',
-    lr=0.005*2,
-    momentum=0.9,
-    paramwise_cfg=dict(
-        custom_keys={
-            '.backbone.cls_token': dict(decay_mult=0.0),
-            '.backbone.pos_embed': dict(decay_mult=0.0),
-            '.backbone.time_embed': dict(decay_mult=0.0)
-        }),
-    weight_decay=1e-4,
-    nesterov=True)  # this lr is used for 8 gpus
+    type='AdamW',
+    lr=4e-4,
+    weight_decay=0.05,
+)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
-lr_config = dict(policy='step', step=[5, 10])
+lr_config = dict(policy='CosineAnnealing', min_lr=0)
 total_epochs = 15
+
+# runtime settings
+checkpoint_config = dict(interval=1, max_keep_ckpts=3)
 fp16=dict(loss_scale='dynamic')
 # runtime settings
-work_dir = './work_dirs/EVL_HMDB51_ViT-L-14'
-# load_from = '../EVL_ViT-L-14.pth'
+work_dir = './work_dirs/EVL_HMDB51_ViT-B-16'
+load_from = '/local_ssd3/jeom/mmaction2/work_dirs/EVL_ViT-B16-8f_kinetics700_25ep/best_top1_acc_epoch_25.pth'
+# load_from = '../CLIP_checkpoints/k400_vitb16_8f_dec4x768_mm.pth'

@@ -2,7 +2,7 @@ checkpoint_config = dict(interval=1)
 log_config = dict(
     interval=10,
     hooks=[
-        dict(type='TextLoggerHook', ignore_last=True),
+        dict(type='TextLoggerHook', ignore_last=False),
         dict(type='TensorboardLoggerHook'),
     ])
 # runtime settings
