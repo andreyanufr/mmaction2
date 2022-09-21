@@ -1,6 +1,6 @@
 _base_ = ['../../_base_/default_runtime.py']
 
-num_classes = 27
+num_classes = 3
 num_samples = 12
 num_frames = 8
 num_strides = 4
@@ -13,7 +13,7 @@ model = dict(
         decoder_qkv_dim=768,
         decoder_num_heads=12,
         backbone_name="ViT-B/16-lnpre",
-        backbone_path='/local_ssd3/jeom/CLIP_checkpoints/ViT-B-16.pt'
+        backbone_path='../CLIP_checkpoints/ViT-B-16.pt'
         ),
     cls_head=dict(type='EVLHead', num_classes=num_classes, in_channels=768),
     # model training and testing settings
@@ -25,12 +25,13 @@ model = dict(
 dataset_type = 'RawframeDataset'
 data_root = 'data/jester/rawframes'
 data_root_val = 'data/jester/rawframes'
-ann_file_train = 'data/jester/jester_train_list_rawframes.txt'
-ann_file_val = 'data/jester/jester_val_list_rawframes.txt'
-ann_file_test = 'data/jester/jester_val_list_rawframes.txt'
-# ann_file_train = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples/train_list_rawframes.txt'
-# ann_file_val = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples/val_list_rawframes.txt'
-# ann_file_test = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples/test_list_rawframes.txt'
+# ann_file_train = 'data/jester/jester_train_list_rawframes.txt'
+# ann_file_val = 'data/jester/jester_val_list_rawframes.txt'
+# ann_file_test = 'data/jester/jester_val_list_rawframes.txt'
+seed=3
+ann_file_train = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples_seed_{seed}/train_list_rawframes.txt'
+ann_file_val = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples_seed_{seed}/val_list_rawframes.txt'
+ann_file_test = f'data/jester/SC_jester_{num_classes}cls_{num_samples}_samples_seed_{seed}/test_list_rawframes.txt'
 jester_flip_label_map = {0: 1, 1: 0, 6: 7, 7: 6}
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
@@ -110,17 +111,12 @@ optimizer = dict(
     type='AdamW',
     lr=4e-4,
     weight_decay=0.05,
-    # paramwise_cfg=dict(
-    #     custom_keys={
-    #         'cls_head.': dict(lr_mult=10)
-    #     }
-    # )
 )
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 
 # learning policy
 lr_config = dict(policy='CosineAnnealing', min_lr=0)
-total_epochs = 50
+total_epochs = 15
 
 # runtime settings
 checkpoint_config = dict(interval=1, max_keep_ckpts=3)
@@ -128,5 +124,5 @@ fp16=dict(loss_scale='dynamic')
 # runtime settings
 work_dir = './work_dirs/EVL_jester_ViT-B-16'
 # load_from = '../CLIP_checkpoints/k400_vitb16_8f_dec4x768_mm.pth'
-# load_from = '../CLIP_checkpoints/k700_vitb16_8f_dec4x768_mm.pth'
-load_from = '/local_ssd3/jeom/mmaction2/work_dirs/EVL_ViT-B16-8f_kinetics700_25ep/best_top1_acc_epoch_25.pth'
+load_from = '../CLIP_checkpoints/k700_vitb16_8f_dec4x768_mm.pth'
+

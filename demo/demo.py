@@ -4,7 +4,7 @@ import os
 import os.path as osp
 
 import cv2
-import decord
+# import decord
 import numpy as np
 import torch
 import webcolors
@@ -69,6 +69,7 @@ def parse_args():
 def get_output(video_path,
                out_filename,
                label,
+               proba,
                fps=30,
                font_scale=0.5,
                font_color='white',
@@ -137,7 +138,7 @@ def get_output(video_path,
 
     frames = [np.array(frame) for frame in frames]
     for frame in frames:
-        cv2.putText(frame, label, location, cv2.FONT_HERSHEY_DUPLEX,
+        cv2.putText(frame, label+': '+str(proba), location, cv2.FONT_HERSHEY_DUPLEX,
                     font_scale, font_color, 1)
 
     # RGB order
@@ -161,7 +162,7 @@ def main():
 
     # build the recognizer from a config file and checkpoint file/url
     model = init_recognizer(cfg, args.checkpoint, device=device)
-
+    
     # e.g. use ('backbone', ) to return backbone feature
     output_layer_names = None
 
@@ -195,6 +196,7 @@ def main():
             args.video,
             args.out_filename,
             results[0][0],
+            results[0][1],
             fps=args.fps,
             font_scale=args.font_scale,
             font_color=args.font_color,

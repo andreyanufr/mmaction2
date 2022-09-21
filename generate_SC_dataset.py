@@ -34,7 +34,6 @@ def load_raw_frames_dataset(file_name, used_data=set(), min_frames=60):
 
     with open(file_name, 'r') as f:
         lines = f.read().splitlines()
-    # with open(file_name, 'r') as f:
         for idx, line in enumerate(lines):
             vals = line.rstrip().split(' ')  # vals[0] = doing_laundry/WxDh_2AEBhc_000212_000222
 
@@ -86,7 +85,7 @@ def get_name(pattern):
     return glob(pattern)[0]
 
 
-def create_subset(dst_dir, src_dir, data_idxs, data, split, mapping_to_new_class):
+def create_subset(dst_dir, src_dir, data_idxs, data, split, mapping_to_new_class, new_mapping_dict):
     dst_video_dir = os.path.join(dst_dir, 'rawframes_' + split)
     os.makedirs(dst_video_dir, exist_ok=True)
     src_frames_dir = os.path.join(src_dir, 'rawframes')
@@ -97,6 +96,9 @@ def create_subset(dst_dir, src_dir, data_idxs, data, split, mapping_to_new_class
             cur_data = data[idx]
             cur_data[-1] = mapping_to_new_class[cur_data[-1]]
             f.write(" ".join(str(val) for val in cur_data) + "\n")
+    with open(os.path.join(dst_dir, 'label_map.txt'), 'w') as f:
+        for value in new_mapping_dict.values():
+            f.write(value+"\n")
 
     for idx in data_idxs:
         cur_data = data[idx]
@@ -158,10 +160,12 @@ def create_sc_subset(src_dir, experiment_name, src_mapping_name,
         test_idxs.extend(new_data_idxs[num_train+num_val:num_train+num_val+num_test])
 
         res += 1
-
-    create_subset(experiment_dir, src_dir, train_idxs, src_data, 'train', new_class_mapping)
-    create_subset(experiment_dir, src_dir, val_idxs, src_data, 'val', new_class_mapping)
-    create_subset(experiment_dir, src_dir, test_idxs, src_data, 'test', new_class_mapping)
+    all_classes = [i for i in src_mapping.keys()]
+    new_mapping_dict = {idx:all_classes[key] for idx, key in enumerate(new_class_mapping.keys())}
+    
+    create_subset(experiment_dir, src_dir, train_idxs, src_data, 'train', new_class_mapping, new_mapping_dict)
+    create_subset(experiment_dir, src_dir, val_idxs, src_data, 'val', new_class_mapping, new_mapping_dict)
+    create_subset(experiment_dir, src_dir, test_idxs, src_data, 'test', new_class_mapping, new_mapping_dict)
 
     return res
 
