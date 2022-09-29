@@ -139,12 +139,14 @@ class RawframeDataset(BaseDataset):
                 if self.with_offset:
                     # idx for offset and total_frames
                     video_info['offset'] = int(line_split[idx])
-                    video_info['total_frames'] = int(line_split[idx + 1])
+                    video_info['total_frames'] = int(line_split[idx + 1]) - 1
                     idx += 2
                 else:
                     # idx for total_frames
-                    video_info['total_frames'] = int(line_split[idx])
+                    video_info['total_frames'] = int(line_split[idx]) - 1
                     idx += 1
+                if video_info['total_frames'] < 30:
+                    continue
                 # idx for label[s]
                 label = [int(x) for x in line_split[idx:]]
                 assert label, f'missing label in line: {line}'

@@ -107,7 +107,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=50,
+    videos_per_gpu=1,
     workers_per_gpu=1,
     test=dict(
         type=dataset_type,

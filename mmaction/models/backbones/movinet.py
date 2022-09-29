@@ -543,6 +543,7 @@ class MoViNet(nn.Module):
             tf_like = True
             num_classes = 600
             conv_type = "2plus1d" if causal else "3d"
+        tf_like = False
         blocks_dic = OrderedDict()
 
         norm_layer = nn.BatchNorm3d if conv_type == "3d" else nn.BatchNorm2d
@@ -699,7 +700,8 @@ class MoViNetBase(MoViNet):
     def __init__(self,
                  name: str = "MoViNetA0",
                  num_classes: bool =-1,
-                 causal: bool = False):
+                 causal: bool = False,
+		 pretrained: str = None):
         assert name in ["MoViNetA0", "MoViNetA1"]
 
         cfg = CfgNode()
