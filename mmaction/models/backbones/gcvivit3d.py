@@ -12,7 +12,7 @@ import math
 
 import torch
 import torch.nn as nn
-#from timm.models.layers import trunc_normal_
+from timm.models.layers import trunc_normal_
 from torch import nn, Tensor
 import torch.nn.functional as F
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
@@ -28,7 +28,7 @@ try:
 except:
     from mmaction.models.builder import BACKBONES
 
-from ptflops import get_model_complexity_info
+#from ptflops import get_model_complexity_info
 
 
 class SE3D(nn.Module):
@@ -160,6 +160,69 @@ class TransformerModel(nn.Module):
         output = self.transformer_encoder(x, src_mask)
         x = self.l2(output)
         return src + x
+
+
+def _make_divisible(v, divisor, min_value=None):
+    """
+    This function is taken from the original tf repo.
+    It ensures that all layers have a channel number that is divisible by 8
+    It can be seen here:
+    https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/mobilenet.py
+    :param v:
+    :param divisor:
+    :param min_value:
+    :return:
+    """
+    if min_value is None:
+        min_value = divisor
+    new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
+    # Make sure that round down does not go down by more than 10%.
+    if new_v < 0.9 * v:
+        new_v += divisor
+    return new_v
+
+class h_sigmoid(nn.Module):
+    def __init__(self, inplace=True):
+        super(h_sigmoid, self).__init__()
+        self.relu = nn.ReLU6(inplace=inplace)
+
+    def forward(self, x):
+        return self.relu(x + 3) / 6
+
+class SELayer(nn.Module):
+    def __init__(self, channel, reduction=4):
+        super(SELayer, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.fc = nn.Sequential(
+                nn.Linear(channel, _make_divisible(channel // reduction, 8)),
+                nn.ReLU(inplace=True),
+                nn.Linear(_make_divisible(channel // reduction, 8), channel),
+                h_sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1, 1)
+        return x * y
+
+class TimeMixer(nn.Module):
+    def __init__(self, d_in: int, d_hidden: int):
+        super().__init__()
+        self.conv = nn.Sequential(
+            nn.Conv3d(d_in, d_hidden, kernel_size=1),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm3d(d_hidden),
+            nn.Conv3d(d_hidden, d_hidden, kernel_size=(3, 1, 1), padding=(1, 0, 0)),
+            SELayer(d_hidden),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm3d(d_hidden),
+            nn.Conv3d(d_hidden, d_in, kernel_size=1),
+        )
+
+    def forward(self, x):
+        return self.conv(x)
+        
 
 
 class GCViTBlock3D(nn.Module):
@@ -407,19 +470,21 @@ class GCViTLayer3D(nn.Module):
                          layer_scale=layer_scale,
                          input_resolution=input_resolution)
             for i in range(depth)])
-        self.temporal_layer = GCViTBlockTemporal(dim=dim,
-                         num_heads=num_heads,
-                         window_size=window_size,
-                         mlp_ratio=mlp_ratio,
-                         qkv_bias=qkv_bias,
-                         qk_scale=qk_scale,
-                         attention=None,
-                         drop=drop,
-                         attn_drop=attn_drop,
-                         drop_path=None,
-                         norm_layer=norm_layer,
-                         layer_scale=layer_scale,
-                         input_resolution=input_resolution)
+        # self.temporal_layer = GCViTBlockTemporal(dim=dim,
+        #                  num_heads=num_heads,
+        #                  window_size=window_size,
+        #                  mlp_ratio=mlp_ratio,
+        #                  qkv_bias=qkv_bias,
+        #                  qk_scale=qk_scale,
+        #                  attention=None,
+        #                  drop=drop,
+        #                  attn_drop=attn_drop,
+        #                  drop_path=None,
+        #                  norm_layer=norm_layer,
+        #                  layer_scale=layer_scale,
+        #                  input_resolution=input_resolution)
+
+        self.temporal_layer = TimeMixer(dim, 2 * dim)
 
         self.downsample = None if not downsample else ReduceSize3D(dim=dim, norm_layer=norm_layer)
 
@@ -435,6 +500,7 @@ class GCViTLayer3D(nn.Module):
         #                                    self.resolution,
         #                                    self.resolution))
         x = x.permute(0, 4, 1, 2, 3).contiguous()
+        x = self.temporal_layer(x)
         #print('SHAPE before :', x.shape)
         q_global = self.q_global_gen(x)
         #print('SHAPE after :', x.shape)
@@ -451,7 +517,7 @@ class GCViTLayer3D(nn.Module):
         x = x.permute(0, 2, 3, 4, 1).contiguous()
         for blk in self.blocks:
             x = blk(x, q_global)
-        x = self.temporal_layer(x)
+        
         if self.downsample is None:
             return x
         return self.downsample(x)
@@ -484,7 +550,7 @@ class GCViViT3D(nn.Module):
         num_features = int(dim * 2 ** (len(depths) - 1))
         self.num_classes = num_classes
         self.patch_embed = PatchEmbed3D(in_chans=in_chans, dim=dim)
-        self.pos_drop = nn.Dropout(p=drop_rate)
+        #self.pos_drop = nn.Dropout(p=drop_rate)
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]
         self.levels = nn.ModuleList()
         for i in range(len(depths)):
@@ -554,7 +620,7 @@ class GCViViT3D(nn.Module):
 
     def forward_features(self, x):
         x = self.patch_embed(x)
-        x = self.pos_drop(x)
+        #x = self.pos_drop(x)
 
         for level in self.levels:
             x = level(x)

@@ -16,8 +16,8 @@ from .stgcn import STGCN
 from .tanet import TANet
 from .timesformer import TimeSformer
 from .x3d import X3D
-#from .gcvivit import GCViViTRecurrent
-from .gcvivit import GCViT3D, GCViTRecurent
+from .gcvivit import GCViViTRecurrent
+from .gcvivit3d import GCViViT3D
 from .movinet import MoViNetBase
 from .levit import LeViT_128_Reccurent
 from .efficientformer3d import EfficientFormer_l1_3D
@@ -28,6 +28,6 @@ __all__ = [
     'ResNet3dSlowFast', 'ResNet3dSlowOnly', 'ResNet3dCSN', 'ResNetTIN', 'X3D',
     'ResNetAudio', 'ResNet3dLayer', 'MobileNetV2TSM', 'MobileNetV2', 'TANet',
     'TimeSformer', 'STGCN', 'AGCN', 'GCViViT3D', 'MobileNetV3_LGD',
-    'MoViNetBase', 'GCViViTRecurrent', 'GCViT3D', 'GCViTRecurent',
+    'MoViNetBase', 'GCViViTRecurrent', 'GCViViT3D',
     'LeViT_128_Reccurent', 'EfficientFormer_l1_3D'
 ]

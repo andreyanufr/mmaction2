@@ -60,8 +60,8 @@ class GCViViTHead(BaseHead):
         #print('SHAPE head', x.shape)
         cls_score = self.head(x)
         #print('SHAPE cls score', x.shape)
-        if len(cls_score.shape) > 2:
-            cls_score = torch.mean(cls_score, dim=1)
+        # if len(cls_score.shape) > 2:
+        #     cls_score = torch.mean(cls_score, dim=1)
         #print("Shape 1: ", cls_score.shape)
         #cls_score = torch.mean(cls_score, dim=1)
         #print("Shape 2 mean: ", cls_score.shape)
